@@ -3,7 +3,7 @@
     <nav class="navbar is-white topNav">
       <div class="container">
         <div class="navbar-brand">
-          <h1>Activity Planner</h1>
+          <h1>{{ fullAppName }}</h1>
         </div>
       </div>
     </nav>
@@ -11,9 +11,24 @@
       <div class="container">
         <div class="navbar-menu">
           <div class="navbar-start">
-            <a class="navbar-item is-active" href="#">Newest</a>
-            <a class="navbar-item" href="#">In Progress</a>
-            <a class="navbar-item" href="#">Finished</a>
+            <a
+              class="navbar-item is-active"
+              href="#"
+            >
+              Newest
+            </a>
+            <a
+              class="navbar-item"
+              href="#"
+            >
+              In Progress
+            </a>
+            <a
+              class="navbar-item"
+              href="#"
+            >
+              Finished
+            </a>
           </div>
         </div>
       </div>
@@ -21,50 +36,17 @@
     <section class="container">
       <div class="columns">
         <div class="column is-3">
-          <a
-            v-if="!isFormDisplayed"
-            @click="toggleFormDisplay"
-            class="button is-primary is-block is-alt is-large"
-            href="#"
-          >New Activity</a>
-          <div v-if="isFormDisplayed" class="create-form">
-            <h2>Create Activity</h2>
-            <form>
-              <div class="field">
-                <label class="label">Title</label>
-                <div class="control">
-                  <input
-                    v-model="newActivity.title"
-                    class="input"
-                    type="text"
-                    placeholder="Read a Book"
-                  >
-                </div>
-              </div>
-              <div class="field">
-                <label class="label">Notes</label>
-                <div class="control">
-                  <textarea
-                    v-model="newActivity.notes"
-                    class="textarea"
-                    placeholder="Write some notes here"
-                  ></textarea>
-                </div>
-              </div>
-              <div class="field is-grouped">
-                <div class="control">
-                  <button @click="createActivity" class="button is-link">Create Activity</button>
-                </div>
-                <div class="control">
-                  <button @click="toggleFormDisplay" class="button is-text">Cancel</button>
-                </div>
-              </div>
-            </form>
-          </div>
+          <ActivityCreate :categories="categories" />
         </div>
         <div class="column is-9">
           <div class="box content">
-            <ActivityItem v-for="activity in activities" :activity="activity" :key="activity.id"></ActivityItem>
+            <ActivityItem
+              v-for="activity in activities"
+              :key="activity.id"
+              :activity="activity"
+            />
+            <div class="activity-length">Currenly {{ activityLength }} activities</div>
+            <div class="activity-motivation">{{ activityMotivation }}</div>
           </div>
         </div>
       </div>
@@ -73,95 +55,77 @@
 </template>
 
 <script>
-import ActivityItem from './components/ActivityItem'
-import { constants } from 'fs'
-
+import ActivityItem from '@/components/ActivityItem'
+import ActivityCreate from '@/components/ActivityCreate'
+import { fetchActivities, fetchUser, fetchCategories } from '@/api'
 export default {
-  name: 'app',
-  components: {
-    ActivityItem
-  },
+  name: 'App',
+  components: {ActivityItem, ActivityCreate},
   data () {
     return {
-      isFormDisplayed: false,
-      message: 'Hello Vue!',
-      titleMessage: 'Title Message Vue!!!!!',
-      isTextDisplayed: true,
-      newActivity: {
-        title: '',
-        notes: ''
-      },
-      items: { 1: { name: 'Filip' }, 2: { name: 'John' } },
-      user: {
-        name: 'Filip Jerga',
-        id: '-Aj34jknvncx98812'
-      },
-      activities: {
-        '1546968934': {
-          id: '1546968934',
-          title: 'Learn Vue.js',
-          notes: 'I started today and it was not good.',
-          progress: 0,
-          category: '1546969049',
-          createdAt: 1546969144391,
-          updatedAt: 1546969144391
-        },
-        '1546969212': {
-          id: '1546969212',
-          title: 'Read Witcher Books',
-          notes: 'These books are super nice',
-          progress: 0,
-          category: '1546969049',
-          createdAt: 1546969144391,
-          updatedAt: 1546969144391
-        }
-      },
-      categories: {
-        '1546969049': { text: 'books' },
-        '1546969225': { text: 'movies' }
+      creator: 'Filip Jerga',
+      appName: 'Activity Planner',
+      items: {1: {name: 'Filip'}, 2: {name: 'John'}},
+        user: {},
+        activities: {},
+        categories: {}
+    }
+  },
+  computed: {
+    fullAppName () {
+      return this.appName + ' by ' + this.creator
+    },
+    activityLength () {
+      return Object.keys(this.activities).length
+    },
+    activityMotivation () {
+      if (this.activityLength && this.activityLength < 5) {
+        return 'Nice to see some activities (:'
+      } else if (this.activityLength >= 5) {
+        return 'So many activities! Good Job!'
+      } else {
+        return 'No activities, so sad :('
       }
     }
   },
+  created () {
+    this.activities = fetchActivities()
+    this.user = fetchUser()
+    this.categories = fetchCategories()
+  },
   methods: {
-    toggleTextDisplay () {
-      this.isTextDisplayed = !this.isTextDisplayed
-    },
-    toggleFormDisplay () {
-      this.isFormDisplayed = !this.isFormDisplayed
-    },
-    createActivity () {
-      console.log(this.newActivity)
-    }
   }
 }
 </script>
 
 <style>
 #activityApp {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
 }
-
-html,
-body {
-  font-family: "Open Sans", serif;
-  background: #f2f6fa;
+html,body {
+  font-family: 'Open Sans', serif;
+  background: #F2F6FA;
 }
 footer {
-  background-color: #f2f6fa !important;
+  background-color: #F2F6FA !important;
 }
-
+.activity-motivation {
+ float: right;
+}
+.activity-length {
+  display: inline-block;
+}
 .example-wrapper {
   margin-left: 30px;
 }
-
 .topNav {
-  border-top: 5px solid #3498db;
+  border-top: 5px solid #3498DB;
 }
 .topNav .container {
-  border-bottom: 1px solid #e6eaee;
+  border-bottom: 1px solid #E6EAEE;
 }
 .container .columns {
   margin: 3rem 0;
@@ -195,21 +159,20 @@ aside.menu .menu-label {
   font-size: 14px;
   line-height: 2.3;
   font-weight: 700;
-  color: #8f99a3;
+  color: #8F99A3;
 }
 article.post {
   margin: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e6eaee;
+  border-bottom: 1px solid #E6EAEE;
 }
 article.post:last-child {
   padding-bottom: 0;
   border-bottom: none;
 }
-.menu-list li {
+.menu-list li{
   padding: 5px;
 }
-
 .navbar-brand > h1 {
   font-size: 31px;
   padding: 20px;
